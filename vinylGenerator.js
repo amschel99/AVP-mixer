@@ -42,30 +42,50 @@ async function resizeImageAsync() {
               ffprobeAudio.stdout.on('data', (data) => {
                 const audioDuration = parseFloat(data.toString());
                 const ffmpeg = spawn('ffmpeg', [
-                  '-stream_loop', '-1', // Loop indefinitely
                   '-i', videoPath,
-                  '-loop', '1',
-                  '-i', circleFile,
                   '-i', 'epic.mp3',
-                  '-filter_complex',
-                  ` [0:v]format=yuv420p[v0];[1:v]rotate=t*33.333333333/10,format=yuv420p[v1];[v1]colorkey=0x000000:similarity=0.01[cout];[v0][cout]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[v];[v]format=rgba[v2];[v2]colorchannelmixer=aa=0.7[v];
-                    [2:a]volume=1.0[a]`, // Adjust the audio volume as needed
+                  '-filter_complex', buildFilterComplex(),
                   '-map', '[v]',
                   '-map', '[a]',
                   '-c:v', 'libx264',
-                  '-preset', 'fast', // Adjust the preset as desired
-                  '-crf', '23', // Adjust the CRF value as desired
-                  '-b:v', '1000k', // Adjust the video bitrate as desired
+                  '-preset', 'fast',
+                  '-crf', '23',
+                  '-b:v', '1000k',
                   '-pix_fmt', 'yuv420p',
-                  '-t', audioDuration.toString(), // Set the output duration based on audio duration
                   '-y',
                   outputPath
                 ]);
-              
-              
-             
-              
-           
+                
+                function buildFilterComplex() {
+                  let filterComplex = '';
+                  const images = ['./4.jpg',"1.jpg"];
+                
+                  for (let i = 0; i < images.length; i++) {
+                    const imageStartTime = i * 5; // Start time for each image (5 seconds apart)
+                    const imageInput = `[${i +2 }]`;
+                    // Apply rotation and colorkey filters
+                    const imageFilters = `${imageInput}rotate=t*33.333333333/10,format=yuv420p[as${i}];[as${i}]colorkey=0x000000:similarity=0.01[cout${i}];[0:v][cout${i}]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2:enable='between(t,${imageStartTime},${imageStartTime + 5})'[v${i}];[v${i}]format=rgba[v${i + 1}];[v${i + 1}]colorchannelmixer=aa=0.7[v${i + 2}];`;
+                
+                    filterComplex += imageFilters;
+                  }
+                
+                  // Add audio volume filter
+                  const audioFilter = '[1:a]volume=1.0[a];';
+                
+                  // Build the complete filter complex string
+                  filterComplex += audioFilter;
+                  filterComplex += `[${images.length}:v]format=yuv420p[v${images.length + 1}];
+                  [v${images.length + 1}]rotate=t*33.333333333/10,format=yuv420p[v${images.length + 2}];
+                  [v${images.length + 2}]colorkey=0x000000:similarity=0.01[cout${images.length}];
+                  [0:v][cout${images.length}]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2:enable='between(t,${images.length * 5},${images.length * 5 + 5})'[v${images.length + 3}];
+                  [v${images.length + 3}]format=rgba[v${images.length + 4}];
+                  [v${images.length + 4}]colorchannelmixer=aa=0.7[v];`;
+                console.log(filterComplex)
+                  return filterComplex;
+                  
+                }
+                
+
               
               
               
@@ -117,7 +137,7 @@ return err
 
 const start= async()=>{
   try{
-    const finalVideo=await generateVinyl("./2.jpg",'./example.mp4',10,'./outputs/final.mp4')
+    const finalVideo=await generateVinyl("./4.jpg",'./example.mp4',10,'./outputs/final.mp4')
     console.log(`find it at ${finalVideo}`)
   }
   catch(e){
