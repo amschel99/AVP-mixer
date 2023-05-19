@@ -32,14 +32,14 @@ async function resizeImageAsync() {
     console.log(circleFile )
         function createVinylRecordEffect(imagePath,videoPath, secs, outputPath) {
             return new Promise((resolve, reject) => {
-              const ffprobe = spawn('ffprobe', [
+              const ffprobeAudio = spawn('ffprobe', [
                 '-v', 'error',
                 '-show_entries', 'format=duration',
                 '-of', 'default=noprint_wrappers=1:nokey=1',
                 'epic.mp3'
               ]);
               
-              ffprobe.stdout.on('data', (data) => {
+              ffprobeAudio.stdout.on('data', (data) => {
                 const audioDuration = parseFloat(data.toString());
                 const ffmpeg = spawn('ffmpeg', [
                   '-stream_loop', '-1', // Loop indefinitely
@@ -48,18 +48,27 @@ async function resizeImageAsync() {
                   '-i', circleFile,
                   '-i', 'epic.mp3',
                   '-filter_complex',
-                  ` [0:v]format=yuv420p[v0];[1:v]rotate=t*33.333333333/10,format=yuv420p[v1];[v1]colorkey=0x000000:similarity=0.01[cout];[v0][cout]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[v];[v]format=rgba[v2];[v2]colorchannelmixer=aa=0.7[v];[2:a]adelay=delays=500|500[a]`,
+                  ` [0:v]format=yuv420p[v0];[1:v]rotate=t*33.333333333/10,format=yuv420p[v1];[v1]colorkey=0x000000:similarity=0.01[cout];[v0][cout]overlay=(main_w-overlay_w)/2:(main_h-overlay_h)/2[v];[v]format=rgba[v2];[v2]colorchannelmixer=aa=0.7[v];
+                    [2:a]volume=1.0[a]`, // Adjust the audio volume as needed
                   '-map', '[v]',
                   '-map', '[a]',
-                  '-r', '60',
                   '-c:v', 'libx264',
-                  '-preset', 'slow',
-                  '-crf', '18',
+                  '-preset', 'fast', // Adjust the preset as desired
+                  '-crf', '23', // Adjust the CRF value as desired
+                  '-b:v', '1000k', // Adjust the video bitrate as desired
                   '-pix_fmt', 'yuv420p',
                   '-t', audioDuration.toString(), // Set the output duration based on audio duration
                   '-y',
                   outputPath
                 ]);
+              
+              
+             
+              
+           
+              
+              
+              
                 ffmpeg.stdout.on('data', (data) => {
                   console.log(`stdout: ${data}`);
                 });
