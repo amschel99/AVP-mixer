@@ -104,7 +104,7 @@ f1+=`[${i+2}:v]format=yuv420p[v${i+2}];[v${i+2}]rotate=t*33.3333333/10,format=yu
          
 
             filterComplex += f1;
-            ffmpegArgs.push('-filter_complex', filterComplex, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-b:v', '1000k', '-pix_fmt', 'yuv444p', '-t', audioDuration.toString(), '-y', outputPath);
+            ffmpegArgs.push('-filter_complex', filterComplex, '-map', '[v]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'fast', '-crf', '18', '-b:v', '1000k', '-pix_fmt', 'yuv420p', '-t', audioDuration.toString(), '-y', outputPath);
           };
 
           getFilterComplex();
