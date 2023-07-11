@@ -50,6 +50,7 @@ To generate a vinyl record video using the Vinyl Record Video Creator tool, foll
 Open the vinylGenerator.js file located in the cloned repository.
 Locate the generateVinyl() function.
 Customize the function call with your desired parameters. For example:
+
 ``` const finalVideo = await generateVinyl(['./1.jpg', '2.jpg', './3.jpg', './4.jpg', './5.jpg', '6.jpg', '7.jpg', '8.jpg'], 'background.mp4', 'epic.mp3', 2, './outputs/final.mp4');
 ```
 The first parameter is an array of image file paths.
